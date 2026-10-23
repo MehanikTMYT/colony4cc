@@ -1,25 +1,20 @@
 package nz.co.mirality.colony4cc.network;
 
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
-import static nz.co.mirality.colony4cc.Colony4CC.ID;
-
+/** PORT(26.1.2): SimpleChannel -> payload registration. The overlay packet is clientbound only. */
 public class Colony4CCPacketHandler
 {
     private static final String PROTOCOL_VERSION = "1";
-    public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
-            new ResourceLocation(ID, "main"),
-            () -> PROTOCOL_VERSION,
-            PROTOCOL_VERSION::equals,
-            PROTOCOL_VERSION::equals);
 
-    public static void init() {
-        int id = 14;
-        INSTANCE.registerMessage(++id, SAddBuildingOverlayPacket.class,
-                SAddBuildingOverlayPacket::write,
-                SAddBuildingOverlayPacket::read,
-                SAddBuildingOverlayPacket::handle);
+    public static void register(final RegisterPayloadHandlersEvent event) {
+        final PayloadRegistrar registrar = event.registrar(PROTOCOL_VERSION);
+        registrar.playToClient(SAddBuildingOverlayPacket.TYPE, SAddBuildingOverlayPacket.STREAM_CODEC, (packet, context) -> {
+            if (FMLEnvironment.getDist().isClient()) {
+                nz.co.mirality.colony4cc.client.ClientRenderer.addBuildingOverlay(packet);
+            }
+        });
     }
 }

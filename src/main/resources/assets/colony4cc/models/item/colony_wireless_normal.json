@@ -1,6 +1,0 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "colony4cc:item/colony_wireless_normal"
-  }
-}

@@ -1,15 +1,15 @@
 package nz.co.mirality.colony4cc;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class Colony4CCConfig
 {
-    private final ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
-    private final ForgeConfigSpec spec;
+    private final ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
+    private final ModConfigSpec spec;
 
-    private final ForgeConfigSpec.BooleanValue freeCreativePocketPlayerCost;
-    private final ForgeConfigSpec.IntValue highlightWorkerCostMultiplier;
-    private final ForgeConfigSpec.IntValue highlightBuildingCostMultiplier;
+    private final ModConfigSpec.BooleanValue freeCreativePocketPlayerCost;
+    private final ModConfigSpec.IntValue highlightWorkerCostMultiplier;
+    private final ModConfigSpec.IntValue highlightBuildingCostMultiplier;
 
     public Colony4CCConfig()
     {
@@ -32,7 +32,7 @@ public class Colony4CCConfig
         spec = builder.build();
     }
 
-    public ForgeConfigSpec getSpec() { return spec; }
+    public ModConfigSpec getSpec() { return spec; }
 
     public boolean getFreeCreativePocketPlayerCost() { return freeCreativePocketPlayerCost.get(); }
     public int getHighlightWorkerCostMultiplier() { return highlightWorkerCostMultiplier.get(); }

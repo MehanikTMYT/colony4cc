@@ -5,23 +5,28 @@
   "name": "research.colony4cc.solar_holography.name",
   "subtitle": "research.colony4cc.solar_holography.subtitle",
   "icon": "colony4cc:rgb_charge",
+  "costs": [
+    {
+      "ingredient": "colony4cc:rgb_charge",
+      "count": 64
+    }
+  ],
   "requirements": [
     {
-      "building": "mechanic",
+      "type": "minecolonies:building",
+      "building": "minecolonies:mechanic",
       "level": 4
     },
     {
-      "building": "dyer",
+      "type": "minecolonies:building",
+      "building": "minecolonies:dyer",
       "level": 4
-    },
-    {
-      "item": "colony4cc:rgb_charge",
-      "quantity": 64
     }
   ],
   "effects": [
     {
-      "colony4cc:effects/free_building_highlight": 1
+      "id": "colony4cc:effects/free_building_highlight",
+      "level": 1
     }
   ]
 }

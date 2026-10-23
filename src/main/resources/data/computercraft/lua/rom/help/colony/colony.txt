@@ -6,4 +6,17 @@ Note that the global API may misbehave if you move the Peripheral block while th
 You can also use peripheral.wrap to select a specific peripheral if multiple are connected for some reason, although this is unlikely to be useful.
 
 Functions in the colony API:
-[API]
+colony.isValid() => boolean
+colony.isWithin(table pos) => boolean
+colony.getInfo() => table
+colony.getBuildings() => table
+colony.getCitizens() => table
+colony.getVisitors() => table
+colony.getPlayers() => table
+colony.getWorkOrders() => table
+colony.getWorkOrderResources(number id) => table
+colony.getBuilderResources(table pos) => table
+colony.getRequests() => table
+colony.getResearch() => table
+colony.highlightWorker(number id, [string/number direction = \"up\"]) => boolean
+colony.highlightBuilding(table pos, [table options], [string/number direction = \"up\"]) => boolean

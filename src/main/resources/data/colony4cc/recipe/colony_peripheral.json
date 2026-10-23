@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "#B#",
+    "CIS",
+    "#M#"
+  ],
+  "key": {
+    "#": "#c:dusts/redstone",
+    "I": "structurize:sceptergold",
+    "B": "minecolonies:colony_banner",
+    "C": "minecolonies:clipboard",
+    "S": "minecolonies:resourcescroll",
+    "M": "computercraft:wired_modem"
+  },
+  "result": {
+    "id": "colony4cc:colony_peripheral"
+  }
+}

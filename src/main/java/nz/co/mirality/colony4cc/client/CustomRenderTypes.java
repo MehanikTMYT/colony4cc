@@ -1,50 +1,44 @@
 package nz.co.mirality.colony4cc.client;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.renderer.RenderState;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import org.lwjgl.opengl.GL11;
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.blaze3d.pipeline.DepthStencilState;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.CompareOp;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.rendertype.LayeringTransform;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.resources.Identifier;
+import nz.co.mirality.colony4cc.Colony4CC;
 
-import java.util.OptionalDouble;
-
-@OnlyIn(Dist.CLIENT)
-public class CustomRenderTypes extends RenderType
+/**
+ * PORT(26.1.2): the 1.16 composite render states became pipelines. OVERLAY_LINES keeps the "no depth test"
+ * behaviour (hut markers visible through blocks); the claim/footprint fill uses vanilla translucent debug quads.
+ */
+public final class CustomRenderTypes
 {
-    // Dummy
-    private CustomRenderTypes(String name, VertexFormat format, int p_i225992_3_, int p_i225992_4_, boolean p_i225992_5_, boolean p_i225992_6_, Runnable runnablePre, Runnable runnablePost) {
-        super(name, format, p_i225992_3_, p_i225992_4_, p_i225992_5_, p_i225992_6_, runnablePre, runnablePost);
+    private CustomRenderTypes() {}
+
+    public static final RenderPipeline OVERLAY_LINES_PIPELINE = RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(Colony4CC.ID, "pipeline/overlay_lines"))
+            .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+            .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
+            .build();
+
+    public static final RenderType OVERLAY_LINES = RenderType.create("colony4cc_overlay_lines",
+            RenderSetup.builder(OVERLAY_LINES_PIPELINE).setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING).createRenderSetup());
+
+    /** Depth-tested lines for footprint/claim frames. */
+    public static RenderType lines()
+    {
+        return RenderTypes.linesTranslucent();
     }
 
-    private static final LineState THICK_LINES = new LineState(OptionalDouble.of(3.0D));
-
-    public static final RenderType OVERLAY_LINES = create("overlay_lines",
-            DefaultVertexFormats.POSITION_COLOR, GL11.GL_LINES, 256,
-            RenderType.State.builder()
-                    .setLineState(THICK_LINES)
-                    .setLayeringState(VIEW_OFFSET_Z_LAYERING)
-                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                    .setTextureState(NO_TEXTURE)
-                    .setDepthTestState(NO_DEPTH_TEST)
-                    .setCullState(NO_CULL)
-                    .setLightmapState(NO_LIGHTMAP)
-                    .setWriteMaskState(COLOR_WRITE)
-                    .createCompositeState(false));
-
-    public static final RenderType CLAIM_AREA = create("claimed_area",
-            DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 256, false, true,
-            RenderType.State.builder()
-                .setTransparencyState(new TransparencyState("translucent_transparency", () -> {
-                    RenderSystem.enableBlend();
-                    RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-                    RenderSystem.enableAlphaTest();
-                }, () -> {
-                    RenderSystem.disableBlend();
-                    RenderSystem.disableAlphaTest();
-                }))
-                .createCompositeState(true));
+    /** Translucent, double-sided quads for filled boxes. */
+    public static RenderType claimArea()
+    {
+        return RenderTypes.debugQuads();
+    }
 }

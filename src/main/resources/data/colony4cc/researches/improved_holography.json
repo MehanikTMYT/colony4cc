@@ -5,19 +5,23 @@
   "name": "research.colony4cc.improved_holography.name",
   "subtitle": "research.colony4cc.improved_holography.subtitle",
   "icon": "colony4cc:rgb_charge",
+  "costs": [
+    {
+      "ingredient": "minecraft:glowstone_dust",
+      "count": 64
+    }
+  ],
   "requirements": [
     {
-      "building": "mechanic",
+      "type": "minecolonies:building",
+      "building": "minecolonies:mechanic",
       "level": 3
-    },
-    {
-      "item": "minecraft:glowstone_dust",
-      "quantity": 64
     }
   ],
   "effects": [
     {
-      "colony4cc:effects/rgb_charge2": 1
+      "id": "colony4cc:effects/rgb_charge2",
+      "level": 1
     }
   ]
 }

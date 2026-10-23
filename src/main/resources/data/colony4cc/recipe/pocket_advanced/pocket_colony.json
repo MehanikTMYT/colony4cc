@@ -1,0 +1,11 @@
+{
+  "type": "computercraft:impostor_shaped",
+  "category": "redstone",
+  "group": "computercraft:pocket_advanced",
+  "key": {"#": "colony4cc:colony_peripheral", "P": "computercraft:pocket_computer_advanced"},
+  "pattern": ["#", "P"],
+  "result": {
+    "components": {"computercraft:back_pocket_upgrade": {"id": "colony4cc:pocket_colony"}},
+    "id": "computercraft:pocket_computer_advanced"
+  }
+}

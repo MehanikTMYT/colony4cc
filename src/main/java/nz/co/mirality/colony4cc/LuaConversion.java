@@ -1,12 +1,16 @@
 package nz.co.mirality.colony4cc;
 
-import dan200.computercraft.shared.peripheral.generic.data.ItemData;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.*;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
-import net.minecraft.util.text.ITextComponent;
+import dan200.computercraft.api.detail.VanillaDetailRegistries;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NumericTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -82,14 +86,14 @@ public final class LuaConversion {
             if (value instanceof BlockPos) {
                 return convert((BlockPos) value);
             }
-            if (value instanceof CompoundNBT) {
-                return convertNbt((CompoundNBT) value);
+            if (value instanceof CompoundTag) {
+                return convertNbt((CompoundTag) value);
             }
-            if (value instanceof ResourceLocation) {
-                return ((ResourceLocation) value).toString();
+            if (value instanceof Identifier) {
+                return ((Identifier) value).toString();
             }
-            if (value instanceof ITextComponent) {
-                return ((ITextComponent) value).getString();
+            if (value instanceof Component) {
+                return ((Component) value).getString();
             }
             return null;
         }
@@ -97,7 +101,7 @@ public final class LuaConversion {
         @Nonnull
         private Map<Object, Object> convert(GlobalPos pos) {
             Map<Object, Object> result = convert(pos.pos());
-            result.put("world", pos.dimension().location().toString());
+            result.put("world", pos.dimension().identifier().toString());
             return result;
         }
 
@@ -120,7 +124,11 @@ public final class LuaConversion {
                 // we want to treat them as regular stacks where possible
                 stack.setCount(1);
             }
-            ItemData.fill(result, stack);
+            // PORT(26.1.2): CC's public detail registry instead of the internal ItemData helper
+            final var server = ServerLifecycleHooks.getCurrentServer();
+            if (server != null) {
+                result.putAll(VanillaDetailRegistries.ITEM_STACK.getDetails(server.registryAccess(), stack));
+            }
             if (wasEmptyish) {
                 stack.setCount(0);  // it should be a copy we don't care about, but just in case...
                 result.put("count", 0);
@@ -130,30 +138,26 @@ public final class LuaConversion {
         }
 
         @Nullable
-        private static Object convertNbt(@Nullable INBT nbt) {
+        private static Object convertNbt(@Nullable Tag nbt) {
             if (nbt == null) return null;
-            if (nbt instanceof CompoundNBT) {
-                CompoundNBT compound = (CompoundNBT) nbt;
+            if (nbt instanceof CompoundTag compound) {
                 Map<Object, Object> result = new HashMap<>();
-                for (String key : compound.getAllKeys()) {
+                for (String key : compound.keySet()) {
                     result.put(key, convertNbt(compound.get(key)));
                 }
                 return result;
             }
-            if (nbt instanceof NumberNBT) {
-                return ((NumberNBT) nbt).getAsNumber();
+            if (nbt instanceof NumericTag number) {
+                return number.box();
             }
-            if (nbt instanceof ListNBT) {
+            if (nbt instanceof ListTag list) {
                 List<Object> result = new ArrayList<>();
-                for (INBT inbt : (ListNBT) nbt) {
-                    result.add(convertNbt(inbt));
+                for (Tag tag : list) {
+                    result.add(convertNbt(tag));
                 }
                 return result;
             }
-            // this doesn't correctly convert all kinds of NBT, but it's
-            // good enough for most purposes.  certainly anything this
-            // mod is likely to encounter.
-            return nbt.getAsString();
+            return nbt.asString().orElseGet(nbt::toString);
         }
     }
 }

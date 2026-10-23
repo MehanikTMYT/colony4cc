@@ -1,27 +1,32 @@
 {
   "branch": "minecolonies:technology",
-  "parentResearch": "minecolonies:technology/morescrolls",
+  "parentResearch": "minecolonies:technology/alchemist",
   "researchLevel": 4,
   "name": "research.colony4cc.pixie_dust.name",
   "subtitle": "research.colony4cc.pixie_dust.subtitle",
   "icon": "minecolonies:scroll_highlight",
+  "costs": [
+    {
+      "ingredient": "minecolonies:scroll_highlight",
+      "count": 16
+    }
+  ],
   "requirements": [
     {
-      "building": "enchanter",
+      "type": "minecolonies:building",
+      "building": "minecolonies:enchanter",
       "level": 4
     },
     {
-      "building": "glassblower",
+      "type": "minecolonies:building",
+      "building": "minecolonies:glassblower",
       "level": 4
-    },
-    {
-      "item": "minecolonies:scroll_highlight",
-      "quantity": 16
     }
   ],
   "effects": [
     {
-      "colony4cc:effects/free_worker_highlight": 1
+      "id": "colony4cc:effects/free_worker_highlight",
+      "level": 1
     }
   ]
 }

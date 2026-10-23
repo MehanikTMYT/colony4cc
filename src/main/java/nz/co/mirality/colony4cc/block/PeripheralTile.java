@@ -1,47 +1,22 @@
 package nz.co.mirality.colony4cc.block;
 
 import dan200.computercraft.api.peripheral.IPeripheral;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import nz.co.mirality.colony4cc.Colony4CC;
 import nz.co.mirality.colony4cc.peripheral.TileColonyPeripheral;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+/** PORT(26.1.2): the peripheral is exposed through CC's PeripheralCapability (registered in Colony4CC). */
+public class PeripheralTile extends BlockEntity {
+    private final TileColonyPeripheral peripheral;
 
-import static dan200.computercraft.shared.Capabilities.CAPABILITY_PERIPHERAL;
-
-public class PeripheralTile extends TileEntity {
-    public PeripheralTile() {
-        super(Colony4CC.PERIPHERAL_TILE.get());
-
+    public PeripheralTile(BlockPos pos, BlockState state) {
+        super(Colony4CC.PERIPHERAL_TILE.get(), pos, state);
         this.peripheral = new TileColonyPeripheral(this);
     }
 
-    private final TileColonyPeripheral peripheral;
-    private LazyOptional<IPeripheral> peripheralCap;
-
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        if (cap == CAPABILITY_PERIPHERAL) {
-            if (this.peripheralCap == null) {
-                this.peripheralCap = LazyOptional.of(() -> this.peripheral);
-            }
-            return this.peripheralCap.cast();
-        }
-
-        return super.getCapability(cap, side);
-    }
-
-    @Override
-    protected void invalidateCaps() {
-        super.invalidateCaps();
-
-        if (this.peripheralCap != null) {
-            this.peripheralCap.invalidate();
-        }
+    public IPeripheral getPeripheral() {
+        return this.peripheral;
     }
 }

@@ -1,108 +1,93 @@
 package nz.co.mirality.colony4cc;
 
-import dan200.computercraft.shared.PocketUpgrades;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraftforge.common.util.Lazy;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
+import dan200.computercraft.api.peripheral.PeripheralCapability;
+import dan200.computercraft.api.pocket.IPocketUpgrade;
+import dan200.computercraft.api.upgrades.UpgradeType;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.registries.DeferredBlock;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import nz.co.mirality.colony4cc.block.PeripheralBlock;
 import nz.co.mirality.colony4cc.block.PeripheralTile;
-import nz.co.mirality.colony4cc.item.BaseBlockItem;
-import nz.co.mirality.colony4cc.item.ColonyWirelessItem;
 import nz.co.mirality.colony4cc.network.Colony4CCPacketHandler;
 import nz.co.mirality.colony4cc.pocket.PocketColony;
-import nz.co.mirality.colony4cc.pocket.PocketColonyWireless;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.function.Supplier;
-
+/**
+ * PORT(26.1.2): NeoForge registration. The pocket upgrade is a data-driven CC:Tweaked upgrade type
+ * (data/colony4cc/computercraft/pocket_upgrade/pocket_colony.json); CC applies it to pocket computers with its own
+ * upgrade recipe. The 1.16 "colony + wireless modem" combined upgrades and their PocketServerComputer mixin are gone:
+ * CC:Tweaked 1.120 pocket computers have two upgrade slots, so a wireless modem and the colony upgrade fit together.
+ */
 @Mod(Colony4CC.ID)
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class Colony4CC {
     public static final String ID = "colony4cc";
     public static final String NAME = "MineColonies for ComputerCraft";
-
     public static final String CC_MOD_ID = "computercraft";
     public static final String COLONY_MOD_ID = "minecolonies";
-
     public static final String PERIPHERAL_ID = "colony_peripheral";
     public static final String PERIPHERAL_NAME = "colony";
 
     public static final Logger LOGGER = LogManager.getLogger();
     public static final Colony4CCConfig CONFIG = new Colony4CCConfig();
 
-    public static final Supplier<ItemGroup> GROUP = Lazy.of(Colony4CC::getComputerCraftGroup);
+    private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(ID);
+    private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(ID);
+    private static final DeferredRegister<BlockEntityType<?>> TILES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, ID);
+    private static final DeferredRegister<UpgradeType<? extends IPocketUpgrade>> POCKET_UPGRADES =
+            DeferredRegister.create(IPocketUpgrade.typeRegistry(), ID);
 
-    private static final DeferredRegister<Block> BLOCKS
-            = DeferredRegister.create(ForgeRegistries.BLOCKS, ID);
-    private static final DeferredRegister<Item> ITEMS
-            = DeferredRegister.create(ForgeRegistries.ITEMS, ID);
-    private static final DeferredRegister<TileEntityType<?>> TILES
-            = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, ID);
+    public static final DeferredBlock<PeripheralBlock> PERIPHERAL_BLOCK
+            = BLOCKS.registerBlock(PERIPHERAL_ID, PeripheralBlock::new);
 
-    public static final RegistryObject<PeripheralBlock> PERIPHERAL_BLOCK
-            = BLOCKS.register(PERIPHERAL_ID, PeripheralBlock::new);
-    public static final RegistryObject<BaseBlockItem> PERIPHERAL_ITEM
-            = ITEMS.register(PERIPHERAL_ID,
-                () -> new BaseBlockItem(PERIPHERAL_BLOCK.get(), new Item.Properties().tab(GROUP.get())));
-    public static final RegistryObject<TileEntityType<?>> PERIPHERAL_TILE
-            = TILES.register(PERIPHERAL_ID,
-                () -> TileEntityType.Builder.of(PeripheralTile::new).build(null));
+    public static final DeferredItem<BlockItem> PERIPHERAL_ITEM
+            = ITEMS.registerSimpleBlockItem(PERIPHERAL_ID, PERIPHERAL_BLOCK);
 
-    public static final RegistryObject<ColonyWirelessItem> UPGRADE_WIRELESS_NORMAL
-            = ITEMS.register("colony_wireless_normal",
-                () -> new ColonyWirelessItem(false, new Item.Properties().tab(GROUP.get())));
-    public static final RegistryObject<ColonyWirelessItem> UPGRADE_WIRELESS_ADVANCED
-            = ITEMS.register("colony_wireless_advanced",
-                () -> new ColonyWirelessItem(true, new Item.Properties().tab(GROUP.get())));
-    public static final RegistryObject<Item> RGB_CHARGE
-            = ITEMS.register("rgb_charge",
-                () -> new Item(new Item.Properties().tab(GROUP.get())));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PeripheralTile>> PERIPHERAL_TILE
+            = TILES.register(PERIPHERAL_ID, () -> new BlockEntityType<>(PeripheralTile::new, PERIPHERAL_BLOCK.get()));
 
-    public static final Lazy<PocketColony> POCKET_COLONY = Lazy.of(PocketColony::new);
-    public static final Lazy<PocketColonyWireless> POCKET_COLONY_WIRELESS_NORMAL = Lazy.of(() -> new PocketColonyWireless(false));
-    public static final Lazy<PocketColonyWireless> POCKET_COLONY_WIRELESS_ADVANCED = Lazy.of(() -> new PocketColonyWireless(true));
+    public static final DeferredItem<Item> RGB_CHARGE = ITEMS.registerSimpleItem("rgb_charge");
 
-    public Colony4CC() {
-        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+    public static final DeferredHolder<UpgradeType<? extends IPocketUpgrade>, UpgradeType<PocketColony>> POCKET_COLONY
+            = POCKET_UPGRADES.register("pocket_colony", () -> UpgradeType.simpleWithCustomItem(PocketColony::new));
 
+    private static final ResourceKey<CreativeModeTab> CC_TAB =
+            ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.fromNamespaceAndPath(CC_MOD_ID, "tab"));
+
+    public Colony4CC(IEventBus bus, ModContainer container) {
         BLOCKS.register(bus);
         ITEMS.register(bus);
         TILES.register(bus);
-
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, CONFIG.getSpec());
-        Colony4CCPacketHandler.init();
+        POCKET_UPGRADES.register(bus);
+        container.registerConfig(ModConfig.Type.SERVER, CONFIG.getSpec());
+        bus.addListener(Colony4CCPacketHandler::register);
+        bus.addListener(Colony4CC::registerCapabilities);
+        bus.addListener(Colony4CC::addToCreativeTab);
     }
 
-    @SubscribeEvent
-    public static void commonSetup(FMLCommonSetupEvent e) {
-        registerComputerUpgrades();
+    private static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(PeripheralCapability.get(), PERIPHERAL_TILE.get(), (tile, side) -> tile.getPeripheral());
     }
 
-    public static void registerComputerUpgrades() {
-        PocketUpgrades.register(POCKET_COLONY.get());
-        PocketUpgrades.register(POCKET_COLONY_WIRELESS_NORMAL.get());
-        PocketUpgrades.register(POCKET_COLONY_WIRELESS_ADVANCED.get());
-    }
-
-    private static ItemGroup getComputerCraftGroup() {
-        for (ItemGroup group : ItemGroup.TABS) {
-            if (group.getRecipeFolderName().equals(CC_MOD_ID)) return group;
+    // The 1.16 version put its items in ComputerCraft's item group; do the same with CC's creative tab.
+    private static void addToCreativeTab(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey() == CC_TAB) {
+            event.accept(PERIPHERAL_ITEM);
+            event.accept(RGB_CHARGE);
         }
-
-        // couldn't find it for some reason...
-        return ItemGroup.TAB_MISC;
     }
 }

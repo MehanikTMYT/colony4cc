@@ -1,0 +1,84 @@
+{
+  "display": {
+    "icon": {
+      "id": "computercraft:pocket_computer_advanced"
+    },
+    "title": {
+      "translate": "advancements.colony4cc.pocket_colony"
+    },
+    "description": {
+      "translate": "advancements.colony4cc.pocket_colony.description"
+    }
+  },
+  "parent": "colony4cc:colony_peripheral",
+  "criteria": {
+    "normal_back": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "computercraft:pocket_computer_normal",
+            "components": {
+              "computercraft:back_pocket_upgrade": {
+                "id": "colony4cc:pocket_colony"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "normal_bottom": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "computercraft:pocket_computer_normal",
+            "components": {
+              "computercraft:bottom_pocket_upgrade": {
+                "id": "colony4cc:pocket_colony"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "advanced_back": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "computercraft:pocket_computer_advanced",
+            "components": {
+              "computercraft:back_pocket_upgrade": {
+                "id": "colony4cc:pocket_colony"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "advanced_bottom": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "computercraft:pocket_computer_advanced",
+            "components": {
+              "computercraft:bottom_pocket_upgrade": {
+                "id": "colony4cc:pocket_colony"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "normal_back",
+      "normal_bottom",
+      "advanced_back",
+      "advanced_bottom"
+    ]
+  ]
+}

@@ -1,33 +1,37 @@
 package nz.co.mirality.colony4cc.block;
 
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.IBlockReader;
-import net.minecraftforge.common.ToolType;
-import nz.co.mirality.colony4cc.Colony4CC;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.MapColor;
 
 import javax.annotation.Nullable;
 
-public class PeripheralBlock extends Block {
-    public PeripheralBlock() {
-        super(AbstractBlock.Properties.of(Material.METAL)
-            .strength(2.2f, 11.f)
-            .harvestTool(ToolType.PICKAXE).harvestLevel(0)
-            .sound(SoundType.METAL));
+/** PORT(26.1.2): the 1.16 Material/ToolType properties are now a map colour plus the minecraft:mineable/pickaxe tag. */
+public class PeripheralBlock extends BaseEntityBlock {
+    public static final MapCodec<PeripheralBlock> CODEC = simpleCodec(PeripheralBlock::new);
+
+    public PeripheralBlock(Properties properties) {
+        super(properties.mapColor(MapColor.METAL).strength(2.2f, 11.f).sound(SoundType.METAL).requiresCorrectToolForDrops());
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
+    @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Nullable
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return Colony4CC.PERIPHERAL_TILE.get().create();
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new PeripheralTile(pos, state);
     }
 }

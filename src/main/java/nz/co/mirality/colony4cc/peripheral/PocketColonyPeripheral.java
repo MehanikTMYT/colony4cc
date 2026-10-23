@@ -1,27 +1,27 @@
 package nz.co.mirality.colony4cc.peripheral;
 
 import dan200.computercraft.api.peripheral.IPeripheral;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
 import nz.co.mirality.colony4cc.Colony4CC;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class PocketColonyPeripheral extends ColonyPeripheral {
-    private World world;
+    private Level world;
     private BlockPos pos = BlockPos.ZERO;
     private Entity tracking;
 
     public void setEntity(Entity entity) {
         if (entity != null) {
-            this.world = entity.getCommandSenderWorld();
+            this.world = entity.level();
             this.pos = entity.blockPosition();
             this.tracking = entity;
         }
@@ -29,7 +29,7 @@ public class PocketColonyPeripheral extends ColonyPeripheral {
     }
 
     @Override
-    public World getWorld() {
+    public Level getWorld() {
         return this.world;
     }
 
@@ -53,19 +53,19 @@ public class PocketColonyPeripheral extends ColonyPeripheral {
     protected IItemHandler getInventory(@Nullable final Direction side)
     {
         if (tracking == null) return null;
-
-        return tracking.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).orElse(null);
+        // PORT(26.1.2): the holder's inventory through the (void-context) entity item capability
+        final var handler = tracking.getCapability(Capabilities.Item.ENTITY, null);
+        return handler == null ? null : IItemHandler.of(handler);
     }
 
     @Override
     protected boolean consumeFuel(@Nonnull final IItemHandler handler, @Nonnull final Item fuel, final int count)
     {
         if (Colony4CC.CONFIG.getFreeCreativePocketPlayerCost() &&
-                tracking instanceof ServerPlayerEntity &&
-                ((ServerPlayerEntity) tracking).isCreative()) {
+                tracking instanceof ServerPlayer player &&
+                player.isCreative()) {
             return true;
         }
-
         return super.consumeFuel(handler, fuel, count);
     }
 }
